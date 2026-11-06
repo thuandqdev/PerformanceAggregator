@@ -1,0 +1,28 @@
+# run 3 — 2026-11-06 15:27:45 +07 — macOS 26.5.2, Apple M4 Pro, Python 3.15.2
+# command: /usr/bin/time -l python3 aggregator.py --input data/ad_data.csv --output results/
+rows read:    26,843,544
+rows skipped: 0
+campaigns:    50
+elapsed:      17.57 s
+wrote:        results/top10_ctr.csv
+wrote:        results/top10_cpa.csv
+wrote:        results/report.html
+       17.61 real        17.34 user         0.24 sys
+            23035904  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                2322  page reclaims
+                  83  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  54  voluntary context switches
+                1676  involuntary context switches
+        443237037721  instructions retired
+         73602574643  cycles elapsed
+            13500848  peak memory footprint
+exit: 0

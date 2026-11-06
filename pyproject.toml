@@ -1,0 +1,13 @@
+[project]
+name = "fv-ad-aggregator"
+version = "1.0.0"
+description = "Streaming CLI that aggregates a large ad performance CSV by campaign and ranks the top 10 by CTR and CPA."
+requires-python = ">=3.10"
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

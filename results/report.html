@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Ad Performance Report</title>
+<style>
+:root {
+  --bg: #f9f9f7;
+  --surface: #fcfcfb;
+  --text: #0b0b0b;
+  --text-2: #52514e;
+  --muted: #6b6a65;
+  --border: #e1e0d9;
+  --axis: #c3c2b7;
+  --accent: #256abf;
+  --accent-hover: #1c5cab;
+  --on-accent: #ffffff;
+  --top: #1c5cab;
+  --other: #86b6ef;
+  --tint: rgba(37, 106, 191, 0.07);
+  --zebra: rgba(11, 11, 11, 0.025);
+  --hover: rgba(37, 106, 191, 0.07);
+  --warn-bg: #fff3d1;
+  --warn-text: #7a4b00;
+  --shadow: 0 1px 2px rgba(11, 11, 11, 0.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d0d0d;
+    --surface: #1a1a19;
+    --text: #f0efec;
+    --text-2: #c3c2b7;
+    --muted: #898781;
+    --border: #2c2c2a;
+    --axis: #383835;
+    --accent: #6da7ec;
+    --accent-hover: #8dbbf1;
+    --on-accent: #0d0d0d;
+    --top: #6da7ec;
+    --other: #184f95;
+    --tint: rgba(109, 167, 236, 0.10);
+    --zebra: rgba(255, 255, 255, 0.025);
+    --hover: rgba(255, 255, 255, 0.06);
+    --warn-bg: #3a2d0a;
+    --warn-text: #ffd27a;
+    --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main { max-width: 1120px; margin: 0 auto; padding: 24px 16px 56px; }
+@media (min-width: 720px) { main { padding: 40px 24px 72px; } }
+h1 { margin: 0; font-size: 28px; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; }
+h2 { margin: 0 0 16px; font-size: 20px; line-height: 1.3; font-weight: 650; }
+h3 { margin: 0; font-size: 15px; font-weight: 650; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, .table-wrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.page-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px 24px; margin-bottom: 32px; }
+.meta { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+.downloads { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+@media (min-width: 720px) { .downloads { width: auto; } }
+.download {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px; border-radius: 10px;
+  background: var(--accent); color: var(--on-accent);
+  text-decoration: none; box-shadow: var(--shadow);
+  transition: background-color 120ms ease;
+}
+.download:hover { background: var(--accent-hover); }
+.download svg { flex: none; width: 20px; height: 20px; }
+.download .what { display: block; font-size: 14px; font-weight: 650; line-height: 1.3; }
+.download .file { display: block; font-size: 12px; line-height: 1.3; opacity: 0.85; white-space: nowrap; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+.highlights { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
+@media (min-width: 600px) { .highlights { grid-template-columns: 1fr 1fr; } }
+.tile { padding: 24px; }
+.tile .label { margin: 0; color: var(--muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.tile .winner { margin: 8px 0 0; font-size: 28px; line-height: 1.2; font-weight: 700; overflow-wrap: anywhere; }
+.tile .value { margin: 4px 0 0; color: var(--accent); font-size: 20px; font-weight: 650; }
+.tile .formula { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px 24px; margin: 0 0 40px; padding: 16px 24px; }
+.stat dt { color: var(--muted); font-size: 13px; }
+.stat dd { margin: 0; font-size: 15px; font-weight: 650; }
+.stat.warn { background: var(--warn-bg); color: var(--warn-text); border-radius: 8px; padding: 4px 12px; }
+.stat.warn dt { color: var(--warn-text); }
+
+section { margin-bottom: 40px; }
+.charts { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 800px) { .charts { grid-template-columns: 1fr 1fr; } }
+.chart { padding: 16px 16px 12px; }
+.legend { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; margin: 8px 0; color: var(--text-2); font-size: 13px; }
+.legend .keys { display: flex; gap: 16px; }
+.key i { display: inline-block; width: 12px; height: 12px; margin-right: 6px; border-radius: 3px; vertical-align: -1px; }
+.key .top { background: var(--top); }
+.key .other { background: var(--other); }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart .caption { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.grid { stroke: var(--border); stroke-width: 1; }
+.baseline { stroke: var(--axis); stroke-width: 1; }
+.tick { fill: var(--muted); font-size: 11px; font-family: inherit; }
+.seg-top { fill: var(--top); }
+.seg-other { fill: var(--other); }
+.hit { fill: transparent; }
+.bin:hover .hit { fill: var(--hover); }
+
+.table-title { margin-bottom: 8px; }
+.table-wrap { max-height: 70vh; overflow: auto; }
+table { width: 100%; min-width: 820px; border-collapse: separate; border-spacing: 0; }
+th, td { padding: 12px 16px; white-space: nowrap; border-top: 1px solid var(--border); }
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-top: 0;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+  vertical-align: bottom;
+  box-shadow: inset 0 -1px 0 var(--border);
+}
+thead th.left, tbody th { text-align: left; }
+td { text-align: right; font-variant-numeric: tabular-nums; }
+tbody th { font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; }
+td.rank { color: var(--muted); text-align: left; width: 1%; }
+tbody tr:nth-child(even) { background: var(--zebra); }
+tbody tr:hover { background: var(--hover); }
+.ranked { background-color: var(--tint); }
+td.ranked { font-weight: 650; }
+.sort { display: block; color: var(--muted); font-size: 12px; font-weight: 500; }
+.null { color: var(--muted); cursor: help; }
+.empty { margin: 0; padding: 24px; color: var(--muted); }
+
+.method { padding: 24px; color: var(--text-2); font-size: 14px; }
+.method h2 { color: var(--text); }
+.method ul { margin: 0; padding-left: 20px; }
+.method li { margin-bottom: 8px; }
+
+@media (max-width: 600px) {
+  h1 { font-size: 24px; }
+  .tile { padding: 16px; }
+  .stats { padding: 16px; }
+  .method { padding: 16px; }
+}
+@media print {
+  body { background: #fff; color: #000; }
+  .card { box-shadow: none; }
+  .downloads { display: none; }
+  .table-wrap { max-height: none; overflow: visible; }
+  thead { display: table-header-group; }
+  tr, .card { break-inside: avoid; }
+  main { padding: 0; }
+}
+</style>
+</head>
+<body>
+<main>
+<header class="page-header">
+<div>
+<h1>Ad Performance Report</h1>
+<p class="meta"><code>ad_data.csv</code> &middot; 26,843,544 rows processed &middot; generated 2026-11-06 17:24 +07</p>
+</div>
+<nav class="downloads" aria-label="Download results">
+<a class="download" href="top10_ctr.csv" download><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg><span><span class="what">Top 10 by CTR</span><span class="file">top10_ctr.csv</span></span></a>
+<a class="download" href="top10_cpa.csv" download><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg><span><span class="what">Top 10 by CPA</span><span class="file">top10_cpa.csv</span></span></a>
+</nav>
+</header>
+<h2 class="sr-only">Highlights</h2>
+<div class="highlights">
+<div class="card tile"><p class="label">Highest CTR</p><p class="winner">CMP005</p><p class="value">2.7521%</p><p class="formula">clicks ÷ impressions</p></div>
+<div class="card tile"><p class="label">Lowest CPA</p><p class="winner">CMP016</p><p class="value">$19.2883</p><p class="formula">spend ÷ conversions</p></div>
+</div>
+<dl class="card stats">
+<div class="stat"><dt>Campaigns</dt><dd>50</dd></div>
+<div class="stat"><dt>Rows skipped</dt><dd>0</dd></div>
+<div class="stat"><dt>Processing time</dt><dd>28.90 s</dd></div>
+<div class="stat"><dt>Peak memory</dt><dd>19 MB</dd></div>
+</dl>
+<section>
+<h2>Distribution across campaigns</h2>
+<div class="charts">
+<div class="card chart"><h3 id="chart-ctr-title">CTR distribution</h3><div class="legend"><span class="keys"><span class="key"><i class="top"></i>Top 10</span><span class="key"><i class="other"></i>Other campaigns</span></span><span>Campaigns per bin</span></div><svg viewBox="0 0 420 250" role="img" aria-labelledby="chart-ctr-title chart-ctr-caption"><text class="tick" x="30" y="224.00" text-anchor="end">0</text><line class="grid" x1="36" x2="412" y1="167.50" y2="167.50"/><text class="tick" x="30" y="171.50" text-anchor="end">2</text><line class="grid" x1="36" x2="412" y1="115.00" y2="115.00"/><text class="tick" x="30" y="119.00" text-anchor="end">4</text><line class="grid" x1="36" x2="412" y1="62.50" y2="62.50"/><text class="tick" x="30" y="66.50" text-anchor="end">6</text><line class="grid" x1="36" x2="412" y1="10.00" y2="10.00"/><text class="tick" x="30" y="14.00" text-anchor="end">8</text><g class="bin"><title>2.74331%–2.74386%: 0 top-10, 1 other</title><rect class="hit" x="36.00" y="10" width="23.50" height="210"/><path class="seg-other" d="M37.00,220.00V197.75Q37.00,193.75 41.00,193.75H54.50Q58.50,193.75 58.50,197.75V220.00z"/></g><g class="bin"><title>2.74386%–2.74441%: 0 top-10, 2 other</title><rect class="hit" x="59.50" y="10" width="23.50" height="210"/><path class="seg-other" d="M60.50,220.00V171.50Q60.50,167.50 64.50,167.50H78.00Q82.00,167.50 82.00,171.50V220.00z"/></g><g class="bin"><title>2.74441%–2.74497%: 0 top-10, 1 other</title><rect class="hit" x="83.00" y="10" width="23.50" height="210"/><path class="seg-other" d="M84.00,220.00V197.75Q84.00,193.75 88.00,193.75H101.50Q105.50,193.75 105.50,197.75V220.00z"/></g><g class="bin"><title>2.74497%–2.74552%: 0 top-10, 2 other</title><rect class="hit" x="106.50" y="10" width="23.50" height="210"/><path class="seg-other" d="M107.50,220.00V171.50Q107.50,167.50 111.50,167.50H125.00Q129.00,167.50 129.00,171.50V220.00z"/></g><g class="bin"><title>2.74552%–2.74607%: 0 top-10, 2 other</title><rect class="hit" x="130.00" y="10" width="23.50" height="210"/><path class="seg-other" d="M131.00,220.00V171.50Q131.00,167.50 135.00,167.50H148.50Q152.50,167.50 152.50,171.50V220.00z"/></g><g class="bin"><title>2.74607%–2.74662%: 0 top-10, 6 other</title><rect class="hit" x="153.50" y="10" width="23.50" height="210"/><path class="seg-other" d="M154.50,220.00V66.50Q154.50,62.50 158.50,62.50H172.00Q176.00,62.50 176.00,66.50V220.00z"/></g><g class="bin"><title>2.74662%–2.74717%: 0 top-10, 6 other</title><rect class="hit" x="177.00" y="10" width="23.50" height="210"/><path class="seg-other" d="M178.00,220.00V66.50Q178.00,62.50 182.00,62.50H195.50Q199.50,62.50 199.50,66.50V220.00z"/></g><g class="bin"><title>2.74717%–2.74772%: 0 top-10, 4 other</title><rect class="hit" x="200.50" y="10" width="23.50" height="210"/><path class="seg-other" d="M201.50,220.00V119.00Q201.50,115.00 205.50,115.00H219.00Q223.00,115.00 223.00,119.00V220.00z"/></g><g class="bin"><title>2.74772%–2.74827%: 0 top-10, 5 other</title><rect class="hit" x="224.00" y="10" width="23.50" height="210"/><path class="seg-other" d="M225.00,220.00V92.75Q225.00,88.75 229.00,88.75H242.50Q246.50,88.75 246.50,92.75V220.00z"/></g><g class="bin"><title>2.74827%–2.74882%: 0 top-10, 7 other</title><rect class="hit" x="247.50" y="10" width="23.50" height="210"/><path class="seg-other" d="M248.50,220.00V40.25Q248.50,36.25 252.50,36.25H266.00Q270.00,36.25 270.00,40.25V220.00z"/></g><g class="bin"><title>2.74882%–2.74938%: 0 top-10, 2 other</title><rect class="hit" x="271.00" y="10" width="23.50" height="210"/><path class="seg-other" d="M272.00,220.00V171.50Q272.00,167.50 276.00,167.50H289.50Q293.50,167.50 293.50,171.50V220.00z"/></g><g class="bin"><title>2.74938%–2.74993%: 1 top-10, 2 other</title><rect class="hit" x="294.50" y="10" width="23.50" height="210"/><path class="seg-other" d="M295.50,167.50h21.50v52.50h-21.50z"/><path class="seg-top" d="M295.50,165.50V145.25Q295.50,141.25 299.50,141.25H313.00Q317.00,141.25 317.00,145.25V165.50z"/></g><g class="bin"><title>2.74993%–2.75048%: 4 top-10, 0 other</title><rect class="hit" x="318.00" y="10" width="23.50" height="210"/><path class="seg-top" d="M319.00,220.00V119.00Q319.00,115.00 323.00,115.00H336.50Q340.50,115.00 340.50,119.00V220.00z"/></g><g class="bin"><title>2.75048%–2.75103%: 1 top-10, 0 other</title><rect class="hit" x="341.50" y="10" width="23.50" height="210"/><path class="seg-top" d="M342.50,220.00V197.75Q342.50,193.75 346.50,193.75H360.00Q364.00,193.75 364.00,197.75V220.00z"/></g><g class="bin"><title>2.75103%–2.75158%: 2 top-10, 0 other</title><rect class="hit" x="365.00" y="10" width="23.50" height="210"/><path class="seg-top" d="M366.00,220.00V171.50Q366.00,167.50 370.00,167.50H383.50Q387.50,167.50 387.50,171.50V220.00z"/></g><g class="bin"><title>2.75158%–2.75213%: 2 top-10, 0 other</title><rect class="hit" x="388.50" y="10" width="23.50" height="210"/><path class="seg-top" d="M389.50,220.00V171.50Q389.50,167.50 393.50,167.50H407.00Q411.00,167.50 411.00,171.50V220.00z"/></g><line class="baseline" x1="36" x2="412" y1="220" y2="220"/><text class="tick" x="36.00" y="238" text-anchor="start">2.7433%</text><text class="tick" x="161.33" y="238" text-anchor="middle">2.7463%</text><text class="tick" x="286.67" y="238" text-anchor="middle">2.7492%</text><text class="tick" x="412.00" y="238" text-anchor="end">2.7521%</text></svg><p class="caption" id="chart-ctr-caption">All 50 campaigns with a CTR fall between 2.7433% and 2.7521%.</p></div>
+<div class="card chart"><h3 id="chart-cpa-title">CPA distribution</h3><div class="legend"><span class="keys"><span class="key"><i class="top"></i>Top 10</span><span class="key"><i class="other"></i>Other campaigns</span></span><span>Campaigns per bin</span></div><svg viewBox="0 0 420 250" role="img" aria-labelledby="chart-cpa-title chart-cpa-caption"><text class="tick" x="30" y="224.00" text-anchor="end">0</text><line class="grid" x1="36" x2="412" y1="115.00" y2="115.00"/><text class="tick" x="30" y="119.00" text-anchor="end">5</text><line class="grid" x1="36" x2="412" y1="10.00" y2="10.00"/><text class="tick" x="30" y="14.00" text-anchor="end">10</text><g class="bin"><title>$19.288–$19.295: 1 top-10, 0 other</title><rect class="hit" x="36.00" y="10" width="23.50" height="210"/><path class="seg-top" d="M37.00,220.00V203.00Q37.00,199.00 41.00,199.00H54.50Q58.50,199.00 58.50,203.00V220.00z"/></g><g class="bin"><title>$19.295–$19.302: 2 top-10, 0 other</title><rect class="hit" x="59.50" y="10" width="23.50" height="210"/><path class="seg-top" d="M60.50,220.00V182.00Q60.50,178.00 64.50,178.00H78.00Q82.00,178.00 82.00,182.00V220.00z"/></g><g class="bin"><title>$19.302–$19.308: 0 top-10, 0 other</title><rect class="hit" x="83.00" y="10" width="23.50" height="210"/></g><g class="bin"><title>$19.308–$19.315: 1 top-10, 0 other</title><rect class="hit" x="106.50" y="10" width="23.50" height="210"/><path class="seg-top" d="M107.50,220.00V203.00Q107.50,199.00 111.50,199.00H125.00Q129.00,199.00 129.00,203.00V220.00z"/></g><g class="bin"><title>$19.315–$19.321: 0 top-10, 0 other</title><rect class="hit" x="130.00" y="10" width="23.50" height="210"/></g><g class="bin"><title>$19.321–$19.328: 4 top-10, 0 other</title><rect class="hit" x="153.50" y="10" width="23.50" height="210"/><path class="seg-top" d="M154.50,220.00V140.00Q154.50,136.00 158.50,136.00H172.00Q176.00,136.00 176.00,140.00V220.00z"/></g><g class="bin"><title>$19.328–$19.335: 2 top-10, 1 other</title><rect class="hit" x="177.00" y="10" width="23.50" height="210"/><path class="seg-other" d="M178.00,199.00h21.50v21.00h-21.50z"/><path class="seg-top" d="M178.00,197.00V161.00Q178.00,157.00 182.00,157.00H195.50Q199.50,157.00 199.50,161.00V197.00z"/></g><g class="bin"><title>$19.335–$19.341: 0 top-10, 6 other</title><rect class="hit" x="200.50" y="10" width="23.50" height="210"/><path class="seg-other" d="M201.50,220.00V98.00Q201.50,94.00 205.50,94.00H219.00Q223.00,94.00 223.00,98.00V220.00z"/></g><g class="bin"><title>$19.341–$19.348: 0 top-10, 8 other</title><rect class="hit" x="224.00" y="10" width="23.50" height="210"/><path class="seg-other" d="M225.00,220.00V56.00Q225.00,52.00 229.00,52.00H242.50Q246.50,52.00 246.50,56.00V220.00z"/></g><g class="bin"><title>$19.348–$19.354: 0 top-10, 9 other</title><rect class="hit" x="247.50" y="10" width="23.50" height="210"/><path class="seg-other" d="M248.50,220.00V35.00Q248.50,31.00 252.50,31.00H266.00Q270.00,31.00 270.00,35.00V220.00z"/></g><g class="bin"><title>$19.354–$19.361: 0 top-10, 6 other</title><rect class="hit" x="271.00" y="10" width="23.50" height="210"/><path class="seg-other" d="M272.00,220.00V98.00Q272.00,94.00 276.00,94.00H289.50Q293.50,94.00 293.50,98.00V220.00z"/></g><g class="bin"><title>$19.361–$19.368: 0 top-10, 6 other</title><rect class="hit" x="294.50" y="10" width="23.50" height="210"/><path class="seg-other" d="M295.50,220.00V98.00Q295.50,94.00 299.50,94.00H313.00Q317.00,94.00 317.00,98.00V220.00z"/></g><g class="bin"><title>$19.368–$19.374: 0 top-10, 0 other</title><rect class="hit" x="318.00" y="10" width="23.50" height="210"/></g><g class="bin"><title>$19.374–$19.381: 0 top-10, 0 other</title><rect class="hit" x="341.50" y="10" width="23.50" height="210"/></g><g class="bin"><title>$19.381–$19.387: 0 top-10, 2 other</title><rect class="hit" x="365.00" y="10" width="23.50" height="210"/><path class="seg-other" d="M366.00,220.00V182.00Q366.00,178.00 370.00,178.00H383.50Q387.50,178.00 387.50,182.00V220.00z"/></g><g class="bin"><title>$19.387–$19.394: 0 top-10, 2 other</title><rect class="hit" x="388.50" y="10" width="23.50" height="210"/><path class="seg-other" d="M389.50,220.00V182.00Q389.50,178.00 393.50,178.00H407.00Q411.00,178.00 411.00,182.00V220.00z"/></g><line class="baseline" x1="36" x2="412" y1="220" y2="220"/><text class="tick" x="36.00" y="238" text-anchor="start">$19.29</text><text class="tick" x="161.33" y="238" text-anchor="middle">$19.32</text><text class="tick" x="286.67" y="238" text-anchor="middle">$19.36</text><text class="tick" x="412.00" y="238" text-anchor="end">$19.39</text></svg><p class="caption" id="chart-cpa-caption">All 50 campaigns with a CPA fall between $19.29 and $19.39.</p></div>
+</div>
+</section>
+<section>
+<h2 class="table-title" id="top-ctr-title">Top 10 campaigns by CTR</h2>
+<div class="card table-wrap" role="region" aria-labelledby="top-ctr-title" tabindex="0">
+<table aria-labelledby="top-ctr-title">
+<thead><tr><th scope="col" class="left">#</th><th scope="col" class="left">Campaign</th><th scope="col">Impressions</th><th scope="col">Clicks</th><th scope="col">Spend</th><th scope="col">Conversions</th><th scope="col" class="ranked" aria-sort="descending">CTR<span class="sort"><span aria-hidden="true">▼</span> highest first</span></th><th scope="col">CPA</th></tr></thead>
+<tbody>
+<tr><td class="rank">1</td><th scope="row" title="CMP005">CMP005</th><td title="13648608306">13,648,608,306</td><td title="375627610">375,627,610</td><td title="394780333.96">$394,780,333.96</td><td title="20403485">20,403,485</td><td class="ranked" title="0.0275">2.7521%</td><td title="19.35">$19.35</td></tr>
+<tr><td class="rank">2</td><th scope="row" title="CMP022">CMP022</th><td title="13703365735">13,703,365,735</td><td title="377109904">377,109,904</td><td title="395899684.64">$395,899,684.64</td><td title="20480486">20,480,486</td><td class="ranked" title="0.0275">2.7520%</td><td title="19.33">$19.33</td></tr>
+<tr><td class="rank">3</td><th scope="row" title="CMP023">CMP023</th><td title="13657508417">13,657,508,417</td><td title="375769033">375,769,033</td><td title="394203576.87">$394,203,576.87</td><td title="20390213">20,390,213</td><td class="ranked" title="0.0275">2.7514%</td><td title="19.33">$19.33</td></tr>
+<tr><td class="rank">4</td><th scope="row" title="CMP011">CMP011</th><td title="13714973625">13,714,973,625</td><td title="377330481">377,330,481</td><td title="396309000.78">$396,309,000.78</td><td title="20463005">20,463,005</td><td class="ranked" title="0.0275">2.7512%</td><td title="19.37">$19.37</td></tr>
+<tr><td class="rank">5</td><th scope="row" title="CMP018">CMP018</th><td title="13708338704">13,708,338,704</td><td title="377076026">377,076,026</td><td title="396003175.53">$396,003,175.53</td><td title="20477639">20,477,639</td><td class="ranked" title="0.0275">2.7507%</td><td title="19.34">$19.34</td></tr>
+<tr><td class="rank">6</td><th scope="row" title="CMP026">CMP026</th><td title="13652760288">13,652,760,288</td><td title="375491308">375,491,308</td><td title="394442607.58">$394,442,607.58</td><td title="20370126">20,370,126</td><td class="ranked" title="0.0275">2.7503%</td><td title="19.36">$19.36</td></tr>
+<tr><td class="rank">7</td><th scope="row" title="CMP019">CMP019</th><td title="13675562649">13,675,562,649</td><td title="376096719">376,096,719</td><td title="395062881.56">$395,062,881.56</td><td title="20415450">20,415,450</td><td class="ranked" title="0.0275">2.7501%</td><td title="19.35">$19.35</td></tr>
+<tr><td class="rank">8</td><th scope="row" title="CMP042">CMP042</th><td title="13717935895">13,717,935,895</td><td title="377260350">377,260,350</td><td title="396576467.39">$396,576,467.39</td><td title="20507021">20,507,021</td><td class="ranked" title="0.0275">2.7501%</td><td title="19.34">$19.34</td></tr>
+<tr><td class="rank">9</td><th scope="row" title="CMP004">CMP004</th><td title="13705584584">13,705,584,584</td><td title="376906722">376,906,722</td><td title="395992597.40">$395,992,597.40</td><td title="20491770">20,491,770</td><td class="ranked" title="0.0275">2.7500%</td><td title="19.32">$19.32</td></tr>
+<tr><td class="rank">10</td><th scope="row" title="CMP027">CMP027</th><td title="13719269461">13,719,269,461</td><td title="377233894">377,233,894</td><td title="396153928.92">$396,153,928.92</td><td title="20462054">20,462,054</td><td class="ranked" title="0.0275">2.7497%</td><td title="19.36">$19.36</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+<section>
+<h2 class="table-title" id="top-cpa-title">Top 10 campaigns by CPA</h2>
+<div class="card table-wrap" role="region" aria-labelledby="top-cpa-title" tabindex="0">
+<table aria-labelledby="top-cpa-title">
+<thead><tr><th scope="col" class="left">#</th><th scope="col" class="left">Campaign</th><th scope="col">Impressions</th><th scope="col">Clicks</th><th scope="col">Spend</th><th scope="col">Conversions</th><th scope="col">CTR</th><th scope="col" class="ranked" aria-sort="ascending">CPA<span class="sort"><span aria-hidden="true">▲</span> lowest first</span></th></tr></thead>
+<tbody>
+<tr><td class="rank">1</td><th scope="row" title="CMP016">CMP016</th><td title="13686317849">13,686,317,849</td><td title="375883156">375,883,156</td><td title="393677129.86">$393,677,129.86</td><td title="20410131">20,410,131</td><td title="0.0275">2.75%</td><td class="ranked" title="19.29">$19.2883</td></tr>
+<tr><td class="rank">2</td><th scope="row" title="CMP049">CMP049</th><td title="13678441909">13,678,441,909</td><td title="375790166">375,790,166</td><td title="393822976.90">$393,822,976.90</td><td title="20408613">20,408,613</td><td title="0.0275">2.75%</td><td class="ranked" title="19.30">$19.2969</td></tr>
+<tr><td class="rank">3</td><th scope="row" title="CMP032">CMP032</th><td title="13707961325">13,707,961,325</td><td title="376277379">376,277,379</td><td title="395003523.04">$395,003,523.04</td><td title="20469062">20,469,062</td><td title="0.0274">2.74%</td><td class="ranked" title="19.30">$19.2976</td></tr>
+<tr><td class="rank">4</td><th scope="row" title="CMP034">CMP034</th><td title="13663387190">13,663,387,190</td><td title="375490759">375,490,759</td><td title="394029600.32">$394,029,600.32</td><td title="20403716">20,403,716</td><td title="0.0275">2.75%</td><td class="ranked" title="19.31">$19.3117</td></tr>
+<tr><td class="rank">5</td><th scope="row" title="CMP040">CMP040</th><td title="13707493063">13,707,493,063</td><td title="376364561">376,364,561</td><td title="395064372.66">$395,064,372.66</td><td title="20444877">20,444,877</td><td title="0.0275">2.75%</td><td class="ranked" title="19.32">$19.3234</td></tr>
+<tr><td class="rank">6</td><th scope="row" title="CMP004">CMP004</th><td title="13705584584">13,705,584,584</td><td title="376906722">376,906,722</td><td title="395992597.40">$395,992,597.40</td><td title="20491770">20,491,770</td><td title="0.0275">2.75%</td><td class="ranked" title="19.32">$19.3245</td></tr>
+<tr><td class="rank">7</td><th scope="row" title="CMP047">CMP047</th><td title="13704337167">13,704,337,167</td><td title="376533784">376,533,784</td><td title="395185526.77">$395,185,526.77</td><td title="20447393">20,447,393</td><td title="0.0275">2.75%</td><td class="ranked" title="19.33">$19.3269</td></tr>
+<tr><td class="rank">8</td><th scope="row" title="CMP045">CMP045</th><td title="13689842314">13,689,842,314</td><td title="376256850">376,256,850</td><td title="394756303.73">$394,756,303.73</td><td title="20424317">20,424,317</td><td title="0.0275">2.75%</td><td class="ranked" title="19.33">$19.3278</td></tr>
+<tr><td class="rank">9</td><th scope="row" title="CMP022">CMP022</th><td title="13703365735">13,703,365,735</td><td title="377109904">377,109,904</td><td title="395899684.64">$395,899,684.64</td><td title="20480486">20,480,486</td><td title="0.0275">2.75%</td><td class="ranked" title="19.33">$19.3306</td></tr>
+<tr><td class="rank">10</td><th scope="row" title="CMP024">CMP024</th><td title="13665607452">13,665,607,452</td><td title="375614418">375,614,418</td><td title="394482754.56">$394,482,754.56</td><td title="20406008">20,406,008</td><td title="0.0275">2.75%</td><td class="ranked" title="19.33">$19.3317</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="card method">
+<h2>Methodology</h2>
+<ul>
+<li><strong>CTR</strong> = total clicks &divide; total impressions, computed from each campaign's totals (not an average of row-level rates). Campaigns with 0 impressions have no CTR and are excluded from the CTR ranking.</li>
+<li><strong>CPA</strong> = total spend &divide; total conversions. Campaigns with 0 conversions have no CPA and are excluded from the CPA ranking.</li>
+<li>Ranking uses exact values before rounding; ties are broken by campaign ID in ascending order.</li>
+<li>Rounding is half up. This page shows CTR as a percentage and Spend and CPA in dollars; the ranked metric carries 4 decimals so close rows stay distinguishable, and hovering any number shows the exact CSV value.</li>
+<li>The CSV files keep the challenge's format: CTR as a ratio with 4 decimals, Spend and CPA with 2.</li>
+</ul>
+</section>
+</main>
+</body>
+</html>
